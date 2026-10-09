@@ -1,0 +1,283 @@
+/* ============================================================
+   日程工作台 - 样式表
+   设计原则：简洁、清爽、手机和电脑都能看好
+   ============================================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, "Microsoft YaHei", "微软雅黑", sans-serif;
+  background: #f5f6f8;
+  color: #1f2329;
+  /* 底部给导航条留位置 */
+  padding-bottom: 64px;
+}
+
+/* ---------- 登录界面 ---------- */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(160deg, #4f6ef7 0%, #6a5acd 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+.login-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 22px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  text-align: center;
+}
+.login-logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4f6ef7;
+  margin-bottom: 6px;
+}
+.login-sub { font-size: 13px; color: #8a9099; margin-bottom: 20px; }
+.login-box input {
+  width: 100%;
+  border: 1px solid #d6d9de;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font-size: 16px;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.login-box input:focus { outline: none; border-color: #4f6ef7; }
+.login-btn {
+  width: 100%;
+  background: #4f6ef7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.login-btn:active { background: #3d5bdb; }
+.link-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #4f6ef7;
+  font-size: 14px;
+  margin-top: 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.login-msg { font-size: 13px; color: #e54848; margin-top: 8px; min-height: 16px; }
+
+/* 未登录时隐藏主界面 */
+body:not(.logged-in) .topbar,
+body:not(.logged-in) #app,
+body:not(.logged-in) .tabbar { display: none; }
+/* 已登录时隐藏登录界面 */
+body.logged-in .login-overlay { display: none; }
+
+/* ---------- 顶部标题栏 ---------- */
+.topbar {
+  background: #4f6ef7;
+  color: #fff;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar h1 { font-size: 19px; font-weight: 600; }
+.xuexitong-btn {
+  background: rgba(255,255,255,.2);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+}
+.xuexitong-btn:active { background: rgba(255,255,255,.35); }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.logout-btn {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.logout-btn:active { background: rgba(255,255,255,.3); }
+
+/* ---------- 主内容区 ---------- */
+#app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 18px 16px 30px;
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+h2 {
+  font-size: 20px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e8eaed;
+}
+h3 {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 18px 0 8px;
+}
+
+/* ---------- 统计卡片 ---------- */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.stat-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 8px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.stat-card .num { font-size: 22px; font-weight: 700; color: #4f6ef7; }
+.stat-card .lbl { font-size: 12px; color: #8a9099; margin-top: 2px; }
+
+/* ---------- 添加表单折叠框 ---------- */
+.add-box {
+  background: #fff;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.add-box summary {
+  padding: 13px 16px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: #4f6ef7;
+  user-select: none;
+}
+.form { padding: 4px 16px 16px; display: grid; gap: 10px; }
+.form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #6b7280;
+  gap: 4px;
+}
+.form input, .form select, .form textarea {
+  border: 1px solid #d6d9de;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #fff;
+}
+.form input:focus, .form select:focus, .form textarea:focus {
+  outline: none;
+  border-color: #4f6ef7;
+}
+.form button {
+  background: #4f6ef7;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.form button:active { background: #3d5bdb; }
+
+/* ---------- 列表 ---------- */
+.list { list-style: none; display: grid; gap: 10px; }
+.list .empty {
+  text-align: center;
+  color: #9aa0a6;
+  padding: 24px;
+  font-size: 14px;
+}
+
+/* 每条记录的卡片 */
+.item {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.item .row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.item .title { font-size: 16px; font-weight: 600; }
+.item .title.done { text-decoration: line-through; color: #9aa0a6; }
+.item .meta { font-size: 13px; color: #6b7280; margin-top: 5px; line-height: 1.6; }
+.item .tag {
+  display: inline-block;
+  font-size: 12px;
+  background: #eef1ff;
+  color: #4f6ef7;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-right: 6px;
+}
+.item .ops { display: flex; gap: 6px; }
+.item .ops button {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-done { background: #e6f9ee; color: #1a9e5a; }
+.btn-done.is-done { background: #f0f1f3; color: #8a9099; }
+.btn-del { background: #fdeaea; color: #e54848; }
+
+/* 完成状态条左边竖线 */
+.item.is-done { opacity: .65; }
+
+/* ---------- 底部导航条 ---------- */
+.tabbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #fff;
+  border-top: 1px solid #e8eaed;
+  display: flex;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.tab {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 12px 4px;
+  font-size: 13px;
+  color: #8a9099;
+  cursor: pointer;
+  font-family: inherit;
+}
+.tab.active { color: #4f6ef7; font-weight: 600; }
+
+/* ---------- 响应式：电脑上稍宽，但不超过 720 居中 ---------- */
+@media (min-width: 600px) {
+  .topbar h1 { font-size: 22px; }
+  .form { grid-template-columns: 1fr 1fr; }
+  .form button { grid-column: 1 / -1; }
+}

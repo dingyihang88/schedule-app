@@ -1,0 +1,18 @@
+{
+  "name": "日程工作台",
+  "short_name": "工作台",
+  "description": "日程管理与学习工作台",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f6f8",
+  "theme_color": "#4f6ef7",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

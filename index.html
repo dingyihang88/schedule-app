@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>日程工作台</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#4f6ef7">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ====== 登录界面（未登录时显示） ====== -->
+  <div id="login" class="login-overlay">
+    <div class="login-box">
+      <div class="login-logo">日程工作台</div>
+      <p class="login-sub">登录后数据自动同步云端</p>
+      <input id="email" type="email" placeholder="邮箱" autocomplete="email">
+      <input id="password" type="password" placeholder="密码（至少6位）" autocomplete="current-password">
+      <button id="signInBtn" class="login-btn">登录</button>
+      <button id="signUpBtn" class="link-btn">没有账号？点这里注册</button>
+      <p id="loginMsg" class="login-msg"></p>
+    </div>
+  </div>
+
+  <!-- ====== 顶部标题栏 ====== -->
+  <header class="topbar">
+    <h1>日程工作台</h1>
+    <div class="topbar-right">
+      <a class="xuexitong-btn" href="https://i.chaoxing.com/" target="_blank">学习通</a>
+      <button id="logoutBtn" class="logout-btn">退出</button>
+    </div>
+  </header>
+
+  <!-- ====== 主内容区：5 个标签页 ====== -->
+  <main id="app">
+
+    <!-- 工作台 -->
+    <section id="page-dashboard" class="page active">
+      <h2>今日概览</h2>
+      <div class="stat-cards" id="statCards"></div>
+
+      <h3>今日到期作业</h3>
+      <ul class="list" id="dashHomework"><li class="empty">加载中…</li></ul>
+
+      <h3>今日待办琐事</h3>
+      <ul class="list" id="dashChores"><li class="empty">加载中…</li></ul>
+    </section>
+
+    <!-- 作业 -->
+    <section id="page-homework" class="page">
+      <h2>作业管理</h2>
+      <details class="add-box">
+        <summary>+ 添加作业</summary>
+        <form id="hwForm" class="form">
+          <label>标题<input name="title" required></label>
+          <label>所属课程<select name="course_id"><option value="">（无）</option></select></label>
+          <label>截止时间<input type="datetime-local" name="deadline"></label>
+          <button type="submit">保存</button>
+        </form>
+      </details>
+      <ul class="list" id="hwList"></ul>
+    </section>
+
+    <!-- 课程 -->
+    <section id="page-courses" class="page">
+      <h2>课程管理</h2>
+      <details class="add-box">
+        <summary>+ 添加课程</summary>
+        <form id="courseForm" class="form">
+          <label>课程名称<input name="name" required></label>
+          <label>任课教师<input name="teacher"></label>
+          <label>上课地点<input name="location"></label>
+          <label>上课时间<input name="class_time" placeholder="如：周一 1-2节"></label>
+          <label>考核要求<input name="requirement"></label>
+          <label>备注<textarea name="note" rows="2"></textarea></label>
+          <button type="submit">保存</button>
+        </form>
+      </details>
+      <ul class="list" id="courseList"></ul>
+    </section>
+
+    <!-- 资料 -->
+    <section id="page-materials" class="page">
+      <h2>学习资料</h2>
+      <details class="add-box">
+        <summary>+ 添加资料</summary>
+        <form id="matForm" class="form">
+          <label>资料名称<input name="name" required></label>
+          <label>所属课程<select name="course_id"><option value="">（无）</option></select></label>
+          <label>类型<select name="type">
+            <option value="文件">本地文件</option>
+            <option value="链接">网盘链接</option>
+            <option value="书籍">书籍</option>
+            <option value="其他">其他</option>
+          </select></label>
+          <label>存放位置<input name="location" placeholder="路径 / 网址 / 书名页码"></label>
+          <label>备注<input name="note"></label>
+          <button type="submit">保存</button>
+        </form>
+      </details>
+      <ul class="list" id="matList"></ul>
+    </section>
+
+    <!-- 琐事 -->
+    <section id="page-chores" class="page">
+      <h2>日常琐事</h2>
+      <details class="add-box">
+        <summary>+ 添加琐事</summary>
+        <form id="choreForm" class="form">
+          <label>内容<input name="title" required></label>
+          <label>待办日期<input type="date" name="due_date"></label>
+          <button type="submit">保存</button>
+        </form>
+      </details>
+      <ul class="list" id="choreList"></ul>
+    </section>
+
+  </main>
+
+  <!-- 底部导航条 -->
+  <nav class="tabbar">
+    <button class="tab active" data-page="dashboard">工作台</button>
+    <button class="tab" data-page="homework">作业</button>
+    <button class="tab" data-page="courses">课程</button>
+    <button class="tab" data-page="materials">资料</button>
+    <button class="tab" data-page="chores">琐事</button>
+  </nav>
+
+  <!-- Supabase SDK（云端数据库客户端）-->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 配置文件（放你的 Supabase 地址和密钥）-->
+  <script src="config.js"></script>
+  <!-- 主逻辑 -->
+  <script src="app.js"></script>
+</body>
+</html>
