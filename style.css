@@ -73,6 +73,83 @@ body {
   font-family: inherit;
 }
 .login-msg { font-size: 13px; color: #e54848; margin-top: 8px; min-height: 16px; }
+.login-tip { font-size: 11px; color: #8a9099; margin-top: 12px; line-height: 1.5; }
+
+/* ---------- 到期提醒条 ---------- */
+.reminder-bar {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+/* ---------- 排序按钮 ---------- */
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.sort-label { font-size: 13px; color: #6b7280; }
+.sort-btn {
+  border: 1px solid #d6d9de;
+  background: #fff;
+  border-radius: 16px;
+  padding: 5px 13px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sort-btn.active {
+  background: #4f6ef7;
+  color: #fff;
+  border-color: #4f6ef7;
+}
+
+/* ---------- 资料文件夹 ---------- */
+.folder-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.folder-back {
+  background: #eef1ff;
+  color: #4f6ef7;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.folder-path { font-size: 14px; color: #6b7280; }
+.folder-add-btn {
+  display: block;
+  width: 100%;
+  background: #eef1ff;
+  color: #4f6ef7;
+  border: none;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.folder-add-btn:active { background: #dde3ff; }
+.folder-item { cursor: pointer; }
+.folder-item:active { background: #f5f6f8; }
+.folder-item .title { color: #4f6ef7; }
 
 /* 未登录时隐藏主界面 */
 body:not(.logged-in) .topbar,

@@ -22,6 +22,7 @@
       <button id="signInBtn" class="login-btn">登录</button>
       <button id="signUpBtn" class="link-btn">没有账号？点这里注册</button>
       <p id="loginMsg" class="login-msg"></p>
+      <p class="login-tip">提示：微信内打开可能不稳定，建议点右上角「…」→「在浏览器打开」</p>
     </div>
   </div>
 
@@ -39,6 +40,7 @@
 
     <!-- 工作台 -->
     <section id="page-dashboard" class="page active">
+      <div class="reminder-bar" id="reminderBar" style="display:none"></div>
       <h2>今日概览</h2>
       <div class="stat-cards" id="statCards"></div>
 
@@ -52,12 +54,19 @@
     <!-- 作业 -->
     <section id="page-homework" class="page">
       <h2>作业管理</h2>
+      <div class="sort-bar">
+        <span class="sort-label">排序：</span>
+        <button class="sort-btn active" data-sort="deadline">截止时间</button>
+        <button class="sort-btn" data-sort="score">分数</button>
+        <button class="sort-btn" data-sort="status">完成状态</button>
+      </div>
       <details class="add-box">
         <summary>+ 添加作业</summary>
         <form id="hwForm" class="form">
           <label>标题<input name="title" required></label>
           <label>所属课程<select name="course_id"><option value="">（无）</option></select></label>
           <label>截止时间<input type="datetime-local" name="deadline"></label>
+          <label>分数<input type="number" name="score" min="0" step="0.5" placeholder="选填"></label>
           <button type="submit">保存</button>
         </form>
       </details>
@@ -85,18 +94,23 @@
     <!-- 资料 -->
     <section id="page-materials" class="page">
       <h2>学习资料</h2>
+      <div class="folder-nav">
+        <button class="folder-back" id="folderBack" onclick="navFolder(0)">🏠 根目录</button>
+        <span class="folder-path" id="folderPath">根目录</span>
+      </div>
+      <button class="folder-add-btn" onclick="openFolderForm()">📁 新建文件夹</button>
       <details class="add-box">
         <summary>+ 添加资料</summary>
         <form id="matForm" class="form">
           <label>资料名称<input name="name" required></label>
           <label>所属课程<select name="course_id"><option value="">（无）</option></select></label>
           <label>类型<select name="type">
-            <option value="文件">本地文件</option>
             <option value="链接">网盘链接</option>
+            <option value="文件">本地文件</option>
             <option value="书籍">书籍</option>
             <option value="其他">其他</option>
           </select></label>
-          <label>存放位置<input name="location" placeholder="路径 / 网址 / 书名页码"></label>
+          <label>存放位置<input name="location" placeholder="网盘链接 / 路径 / 书名页码"></label>
           <label>备注<input name="note"></label>
           <button type="submit">保存</button>
         </form>

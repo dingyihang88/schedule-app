@@ -9,6 +9,8 @@ const sb = supabase.createClient(CONFIG.url, CONFIG.anonKey);
 
 // 课程列表缓存（给作业/资料的"所属课程"下拉框用）
 let courses = [];
+// 作业排序模式：deadline（截止时间）| score（分数）| status（完成状态）
+let hwSortMode = 'deadline';
 
 // ---- 通用工具 ----
 function shortDate(s) { return s ? s.slice(0, 10) : ''; }
@@ -73,6 +75,9 @@ async function doSignUp() {
 function enterApp() {
   document.body.classList.add('logged-in');
   loadDashboard();
+  checkDueReminders();
+  // 每 5 分钟检查一次到期作业
+  setInterval(checkDueReminders, 5 * 60 * 1000);
 }
 
 // 页面打开时检查是否已登录（session 还在就免登录）
@@ -81,6 +86,66 @@ async function initAuth() {
   if (data.session) enterApp();
 }
 initAuth();
+
+// ============================================================
+// 作业到期提醒：浏览器通知 + 工作台提醒条
+// ============================================================
+async function requestNotifyPermission() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const r = await Notification.requestPermission();
+  return r === 'granted';
+}
+
+function notify(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try { new Notification(title, { body, icon: 'icon.svg' }); } catch (e) {}
+}
+
+// 检查未来 3 天内到期的作业，弹通知 + 显示提醒条
+async function checkDueReminders() {
+  try {
+    const { data: hw } = await sb.from('homework').select('*');
+    const list = hw || [];
+    const now = new Date();
+    const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+    const dueSoon = list.filter(h => {
+      if (h.done || !h.deadline) return false;
+      const d = new Date(h.deadline);
+      return d >= now && d <= in3Days;
+    });
+
+    // 工作台提醒条
+    const bar = document.getElementById('reminderBar');
+    if (bar) {
+      if (dueSoon.length) {
+        bar.style.display = 'block';
+        bar.innerHTML = dueSoon.map(h =>
+          `⚠️ 「${escapeHtml(h.title)}」${escapeHtml(shortDate(h.deadline))} 截止`
+        ).join('<br>');
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    // 弹浏览器通知（同一作业只弹一次，用 localStorage 记录）
+    if (dueSoon.length) {
+      await requestNotifyPermission();
+      const notified = JSON.parse(localStorage.getItem('notifiedHw') || '[]');
+      let changed = false;
+      dueSoon.forEach(h => {
+        if (!notified.includes(h.id)) {
+          notify('作业即将到期', `${h.title} · ${shortDate(h.deadline)} 截止`);
+          notified.push(h.id);
+          changed = true;
+        }
+      });
+      if (changed) localStorage.setItem('notifiedHw', JSON.stringify(notified));
+    }
+  } catch (e) { console.error('checkDueReminders', e); }
+}
 
 // ============================================================
 // 标签页切换
@@ -183,6 +248,15 @@ async function delCourse(id) {
   loadCourses();
 }
 
+// 排序按钮事件
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+    hwSortMode = btn.dataset.sort;
+    loadHomework();
+  });
+});
+
 // ============================================================
 // 作业管理
 // ============================================================
@@ -195,10 +269,19 @@ async function loadHomework() {
 
   const { data, error } = await sb.from('homework').select('*').order('created_at', { ascending: false });
   if (error) return showErr(error, '加载作业失败：');
-  const list = data || [];
+  let list = data || [];
+
+  // 按选择的模式排序
+  if (hwSortMode === 'score') {
+    list.sort((a, b) => (b.score || 0) - (a.score || 0));
+  } else if (hwSortMode === 'status') {
+    list.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
+  } else {
+    // deadline：未完成在前，再按截止时间升序
+    list.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || (a.deadline || '').localeCompare(b.deadline || ''));
+  }
 
   const ul = document.getElementById('hwList');
-  list.sort((a, b) => (a.done - b.done) || (a.deadline || '').localeCompare(b.deadline || ''));
   ul.innerHTML = list.length
     ? list.map(h => `
       <li class="item ${h.done ? 'is-done' : ''}">
@@ -212,6 +295,7 @@ async function loadHomework() {
         <div class="meta">
           ${courseName(h.course_id) ? '<span class="tag">' + escapeHtml(courseName(h.course_id)) + '</span>' : ''}
           ${h.deadline ? '截止：' + escapeHtml(h.deadline) : ''}
+          ${h.score ? ' · 分数：' + escapeHtml(h.score) : ''}
         </div>
       </li>`).join('')
     : '<li class="empty">没有作业记录</li>';
@@ -224,6 +308,8 @@ document.getElementById('hwForm').addEventListener('submit', async e => {
   if (body.course_id === '') delete body.course_id;
   else body.course_id = Number(body.course_id);
   if (body.deadline === '') delete body.deadline;
+  if (body.score === '' || body.score === null) delete body.score;
+  else body.score = Number(body.score);
   const { error } = await sb.from('homework').insert(body);
   if (error) return showErr(error, '保存失败：');
   e.target.reset();
@@ -243,8 +329,11 @@ async function delHw(id) {
 }
 
 // ============================================================
-// 学习资料
+// 学习资料（文件夹树版本）
 // ============================================================
+let currentFolderId = 0;  // 当前所在文件夹ID，0 = 根目录
+let materials = [];       // 所有资料缓存（含文件夹）
+
 async function loadMaterials() {
   if (!courses.length) {
     const { data } = await sb.from('courses').select('*');
@@ -254,11 +343,30 @@ async function loadMaterials() {
 
   const { data, error } = await sb.from('materials').select('*').order('created_at', { ascending: false });
   if (error) return showErr(error, '加载资料失败：');
-  const list = data || [];
+  materials = data || [];
+  renderMaterials();
+}
+
+// 渲染当前文件夹内容
+function renderMaterials() {
+  renderFolderPath();
+  const folders = materials.filter(m => m.is_folder && (m.parent_id || 0) === currentFolderId);
+  const items = materials.filter(m => !m.is_folder && (m.parent_id || 0) === currentFolderId);
 
   const ul = document.getElementById('matList');
-  ul.innerHTML = list.length
-    ? list.map(m => `
+  const html = [
+    ...folders.map(f => `
+      <li class="item folder-item" onclick="navFolder(${f.id})">
+        <div class="row1">
+          <span class="title">📁 ${escapeHtml(f.name)}</span>
+          <div class="ops">
+            <button class="btn-del" onclick="event.stopPropagation(); delMat(${f.id})">删除</button>
+          </div>
+        </div>
+        <div class="meta">文件夹（点击进入）</div>
+      </li>
+    `),
+    ...items.map(m => `
       <li class="item">
         <div class="row1">
           <span class="title">${escapeHtml(m.name)}</span>
@@ -272,13 +380,54 @@ async function loadMaterials() {
           ${m.location ? '位置：' + escapeHtml(m.location) + '<br>' : ''}
           ${m.note ? '备注：' + escapeHtml(m.note) : ''}
         </div>
-      </li>`).join('')
-    : '<li class="empty">没有资料记录</li>';
+      </li>
+    `)
+  ];
+  ul.innerHTML = html.length ? html.join('') : '<li class="empty">此文件夹为空，点上方「新建文件夹」或「添加资料」</li>';
+}
+
+// 渲染当前路径面包屑 + 返回按钮
+function renderFolderPath() {
+  let path = '根目录';
+  if (currentFolderId !== 0) {
+    const parts = [];
+    let cur = materials.find(m => m.id === currentFolderId);
+    while (cur) {
+      parts.unshift(cur.name);
+      cur = materials.find(m => m.id === (cur.parent_id || 0));
+    }
+    path = '根目录 / ' + parts.join(' / ');
+  }
+  const el = document.getElementById('folderPath');
+  if (el) el.textContent = path;
+  const back = document.getElementById('folderBack');
+  if (back) back.style.display = currentFolderId === 0 ? 'none' : '';
+}
+
+// 进入文件夹
+function navFolder(id) {
+  currentFolderId = id;
+  renderMaterials();
+}
+
+// 新建文件夹
+async function openFolderForm() {
+  const name = prompt('请输入文件夹名称：');
+  if (!name) return;
+  const { error } = await sb.from('materials').insert({
+    name: name.trim(),
+    is_folder: true,
+    parent_id: currentFolderId
+  });
+  if (error) return showErr(error, '创建文件夹失败：');
+  loadMaterials();
 }
 
 document.getElementById('matForm').addEventListener('submit', async e => {
   e.preventDefault();
   const body = Object.fromEntries(new FormData(e.target));
+  body.is_folder = false;
+  body.parent_id = currentFolderId;
   if (body.course_id === '') delete body.course_id;
   else body.course_id = Number(body.course_id);
   const { error } = await sb.from('materials').insert(body);
@@ -288,7 +437,9 @@ document.getElementById('matForm').addEventListener('submit', async e => {
 });
 
 async function delMat(id) {
-  if (!confirm('确定删除这条资料？')) return;
+  const m = materials.find(x => x.id === id);
+  const tip = m && m.is_folder ? '确定删除这个文件夹？文件夹内的资料不会被删除，但会变成根目录的内容。' : '确定删除这条资料？';
+  if (!confirm(tip)) return;
   const { error } = await sb.from('materials').delete().eq('id', id);
   if (error) return showErr(error, '删除失败：');
   loadMaterials();
